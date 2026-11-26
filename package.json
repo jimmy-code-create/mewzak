@@ -1,7 +1,7 @@
 {
   "name": "mewzak",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Mewzak — a quiet music player for web, desktop and mobile",
   "scripts": {

@@ -24,11 +24,11 @@ npm run preview
 | Area | State |
 | --- | --- |
 | Playback | Real `HTMLAudioElement`: play, pause, seek, previous, next, queue, shuffle, repeat, volume, Media Session metadata. |
-| Music source | **Audius public API** (no key), behind `src/product/source.ts`. Real MP3 streams and artwork. |
+| Music source | **Audius public API** (no key), behind `src/product/source.ts`. Sixteen genres plus underground trending, deduplicated into hundreds of real tracks. |
 | Local library | Likes, user playlists (create, rename, reorder, remove), recents, search history and queue in `localStorage`. |
 | Catalogue restore | Saved IDs are re-fetched from Audius on boot. Track metadata is not persisted. |
 | Search | Debounced Audius search with loading, empty, error and retry states. |
-| Onboarding | Phase 2 flow with a `localOnly` doorway: no fake Google or phone auth. |
+| Onboarding | Suno-style violet WebGL atmosphere (eight steps) and a local email + password account (salted SHA-256, stored on this device). Guest entry is still available. |
 | Profile / Settings | Real local counts, real cache/clear/sign-out/delete actions, real theme and motion settings. |
 | Keyboard | Space, arrows, Ctrl/Cmd+F, Escape in dialogs. |
 | Desktop | Resizable now-playing panel, remembered panel width, Tauri window-state plugin in the native shell. |
@@ -38,9 +38,10 @@ npm run preview
 
 These are deliberately visible here rather than hidden behind fake UI:
 
-- **Accounts and cross-device sync (M3).** No backend credentials were available and no
-  accounts are fabricated. The app is local-only. See `SETUP.md` for the exact backend
-  decision and keys needed.
+- **Cloud accounts and cross-device sync (M3).** The onboarding email/password is a real
+  local credential, not a server account: it cannot sign in on another device, send a
+  reset email, or sync a library. No backend credentials were available and no remote
+  accounts are fabricated. See `SETUP.md` for the exact backend decision and keys needed.
 - **Native installers.** The Tauri shell is configured, but this workspace has no Rust,
   Xcode or Android SDK, so no `.dmg`, `.exe`/MSI, `.ipa`, `.aab` or `.apk` was built or
   signed here.
@@ -73,6 +74,8 @@ public identifier, not a secret.
 ```
 src/
   product/source.ts       MusicSource boundary + Audius implementation
+  product/account.ts      local email/password account (salted hash)
+  phase2/OnboardingBackground.tsx  WebGL onboarding atmosphere (violet)
   product/library.ts      localStorage schema and playlist helpers
   product/search.ts       debounced source search
   product/ProductApp.tsx  boot, onboarding gate, shell, playlist manager

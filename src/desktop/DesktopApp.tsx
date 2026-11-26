@@ -232,11 +232,12 @@ function HomePage() {
   const name = profile?.name ?? 'Listener';
   const first = name.split(/\s+/)[0];
   const initials = displayNameFor(name).initials;
-  const madeForYou = ['late-night-purr', 'sunday-loaf', 'rainy-window', 'focus-paws'].filter(
-    (id) => playlistById[id],
-  );
-  const recent = albums.slice(0, 4).map((album) => album.id);
-  const repeatTracks = tracks.slice(0, 5).map((item) => item.id);
+  const madeForYou = playlists
+    .filter((item) => item.curator === 'Mewzak' && item.id !== 'liked-songs' && item.trackIds.length > 0)
+    .slice(0, 8)
+    .map((item) => item.id);
+  const recent = albums.slice(0, 8).map((album) => album.id);
+  const repeatTracks = tracks.slice(0, 8).map((item) => item.id);
   const sunday = playlistById['sunday-loaf'];
   const firstAlbum = albums[0];
 
@@ -1077,7 +1078,10 @@ function ProfilePage() {
           <div className="dk-profile-avatar">{initials}</div>
           <div>
             <h2 className="display">{name}</h2>
-            <span className="dk-handle">{profile?.handle ?? '@listener'} · on this device</span>
+            <span className="dk-handle">
+              {profile?.handle ?? '@listener'}
+              {profile?.email ? ` · ${profile.email}` : ' · on this device'}
+            </span>
             <div className="dk-profile-chips">
               <span className="ph-plan-chip">
                 <Sparkles size={11} /> Local profile
@@ -1344,7 +1348,9 @@ function SettingsPage() {
             <span className="dk-user-avatar">{initials}</span>
             <div>
               <strong>{name}</strong>
-              <span>{profile?.handle ?? '@listener'} · no account, no sync</span>
+              <span>
+                {profile?.email ? `${profile.email} · on this device` : `${profile?.handle ?? '@listener'} · no account, no sync`}
+              </span>
             </div>
           </div>
           <p className="dk-profile-note-copy">

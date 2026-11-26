@@ -4,13 +4,16 @@
  * SECURITY
  * --------
  * A password is only ever held in transient component memory for the duration of
- * the submit. It is never written to localStorage, sessionStorage, the saved
- * onboarding session, or any global store.
- *
- * There is no account backend in this repository today. Set VITE_AUTH_ENDPOINT
- * to a real signup/login service to use the network path below, or replace the
- * clearly marked TODO block. See the end of this file for the expected contract.
+ * the submit. It is never written to the saved onboarding session or any global
+ * store. With no backend configured, the fallback keeps a salted SHA-256
+ * credential in this device's localStorage so create/login can actually be
+ * verified. Set VITE_AUTH_ENDPOINT to use a real signup/login service instead.
  */
+
+import {
+  createLocalAccount,
+  verifyLocalAccount,
+} from '../product/account';
 
 export type AuthMode = 'create' | 'login';
 
@@ -64,23 +67,34 @@ export async function submitAuth(
   }
 
   /* ──────────────────────────────────────────────────────────────────────────
-   * TODO(auth): NO BACKEND IS CONNECTED.
+   * LOCAL FALLBACK (no backend configured).
    *
-   * This demo branch lets the onboarding UI be reviewed end to end. It does not
-   * create an account and it does not authenticate anyone. Replace it with one of:
+   * One email/password account per device, stored as a random salt plus a
+   * SHA-256 digest in localStorage. Create and login both verify against that
+   * record, so the onboarding is not a fake success. This is not cross-device
+   * sync and cannot send password resets. Set VITE_AUTH_ENDPOINT to replace it
+   * with a real service:
    *
-   *   1. A backend endpoint (recommended): set VITE_AUTH_ENDPOINT and implement
-   *      POST {endpoint}/signup and POST {endpoint}/login, accepting
-   *      { email, password } as JSON. Return 2xx on success and
-   *      { message } or { error } on failure. Use HTTPS and rate limiting.
-   *   2. Supabase Auth: supabase.auth.signUp({ email, password }) /
-   *      signInWithPassword({ email, password }).
-   *   3. Firebase Auth: createUserWithEmailAndPassword / signInWithEmailAndPassword.
+   *   POST {endpoint}/signup and POST {endpoint}/login, accepting
+   *   { email, password } as JSON. Return 2xx on success and
+   *   { message } or { error } on failure. Use HTTPS and rate limiting.
    *
-   * Do not log the password, do not persist it, and do not send it anywhere over
-   * plain HTTP. After a successful call, store only the session token the auth
-   * provider returns (in an httpOnly cookie or the provider's own session store).
+   * Do not log the password or send it over plain HTTP. A hosted provider
+   * (Supabase Auth, Firebase Auth) also works here.
    * ────────────────────────────────────────────────────────────────────────── */
-  await new Promise((resolve) => window.setTimeout(resolve, 900));
-  return { ok: true };
+  await new Promise((resolve) => window.setTimeout(resolve, 650));
+  const result =
+    mode === 'create'
+      ? await createLocalAccount(email, password)
+      : await verifyLocalAccount(email, password);
+  if (result.ok) return { ok: true };
+  return {
+    ok: false,
+    message:
+      result.error === 'exists'
+        ? 'An account already exists on this device. Log in instead.'
+        : result.error === 'no-account'
+          ? 'No account with that email on this device. Create one instead.'
+          : 'That password does not match the account on this device.',
+  };
 }

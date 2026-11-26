@@ -61,7 +61,7 @@ export const AUTH_LOADING = {
 export const AUTH = {
   eyebrow: 'Your account',
   createTitle: 'Keep your room.',
-  createBody: 'An email and a password, and your room can follow you to another device.',
+  createBody: 'An email and a password, kept on this device. No mailing list, nothing sent.',
   loginTitle: 'Welcome back.',
   loginBody: 'Sign in to pick up your queue, your saves and the playlists that already know your name.',
   createTab: 'Create account',
@@ -82,7 +82,7 @@ export const AUTH = {
   emailRequired: 'Enter your email address.',
   emailInvalid: 'Enter a valid email address.',
   passwordInvalid: 'Use at least 8 characters.',
-  legal: 'Your password is never stored on this device.',
+  legal: 'Your password is salted and hashed on this device. It is never sent.',
 };
 
 export const BIRTHDAY = {

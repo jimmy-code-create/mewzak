@@ -7,6 +7,7 @@ import { PhoneApp } from '../phone/PhoneApp';
 import { AppProvider, useApp, type AppProfile } from '../store';
 import { installCatalogue, mergeSourceCatalogue, trackById } from '../data';
 import { loadLibrary } from './library';
+import { loadLocalAccount } from './account';
 import { buildCatalogue, fetchTracksByIds, fetchTrending } from './source';
 
 type BootState = 'loading' | 'ready' | 'error';
@@ -15,6 +16,7 @@ function toProfile(session: P2Session): AppProfile {
   return {
     name: session.name,
     handle: session.handle,
+    email: loadLocalAccount()?.email,
     genres: session.genres,
     avatarSeed: session.avatarSeed,
     birthday: session.birthday,
@@ -38,35 +40,48 @@ function useMediaQuery(query: string) {
 function BootScreen({ state, message, onRetry }: { state: BootState; message?: string; onRetry: () => void }) {
   return (
     <div className="product-boot">
+      <div className="product-boot-glow" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="product-boot-grain" aria-hidden="true" />
-      <main className="product-boot-card">
-        <span className="product-boot-mark">
-          <CatMark size={44} gradient />
-        </span>
-        <p className="product-eyebrow">Mewzak · soft paws, real music</p>
-        <h1>{state === 'error' ? 'The shelf is quiet.' : 'Tuning the room.'}</h1>
-        <p className="product-boot-body">
-          {state === 'error'
-            ? message || 'The music source did not answer. Nothing was lost; try again.'
-            : 'Fetching a small, real catalogue from Audius and warming the player.'}
-        </p>
+      <main className="product-boot-splash">
+        <div className="product-boot-brand">
+          <span className="product-boot-mark">
+            <CatMark size={46} gradient />
+          </span>
+          <span className="product-boot-wordmark">mewzak</span>
+          <p className="product-boot-tagline">Soft paws. Real music.</p>
+        </div>
+
         {state === 'loading' ? (
-          <div className="product-boot-loading" role="status">
+          <div className="product-boot-loading" role="status" aria-live="polite">
             <span className="product-spinner" />
-            <span>Connecting to Audius</span>
+            <span>Tuning the room</span>
+            <i className="product-boot-dots" aria-hidden="true">
+              <b />
+              <b />
+              <b />
+            </i>
           </div>
         ) : (
-          <div className="product-boot-actions">
-            <button className="product-primary" onClick={onRetry}>
-              Try again
-            </button>
-            <a className="product-text-link" href="?studio=1">
-              Open the design studio
-            </a>
+          <div className="product-boot-error" role="alert">
+            <p className="product-eyebrow">The shelf is quiet</p>
+            <h1>{message || 'The music source did not answer. Nothing was lost; try again.'}</h1>
+            <div className="product-boot-actions">
+              <button className="product-primary" onClick={onRetry}>
+                Try again
+              </button>
+              <a className="product-text-link" href="?studio=1">
+                Open the design studio
+              </a>
+            </div>
           </div>
         )}
+
         <p className="product-boot-note">
-          Streams are supplied by Audius. No account needed; your library stays on this device.
+          Streaming from Audius · your library stays on this device.
         </p>
       </main>
     </div>
@@ -330,7 +345,7 @@ export function ProductApp() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 16000);
+    const timer = window.setTimeout(() => controller.abort(), 26000);
     setBoot('loading');
     setBootError(undefined);
     (async () => {

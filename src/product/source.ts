@@ -153,22 +153,52 @@ async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 type TracksResponse = { data?: AudiusTrack[] };
 
+// One shelf is not a catalogue. These are the rooms Mewzak asks Audius to fill
+// on boot: sixteen genres, forty tracks each, deduplicated below. That keeps the
+// home screen, search and every playlist stocked with hundreds of songs instead
+// of the same dozen. Partial failures are fine — whatever answers is used.
+const DISCOVERY_GENRES = [
+  'Lo-Fi',
+  'Ambient',
+  'Chill',
+  'Downtempo',
+  'Electronic',
+  'House',
+  'Techno',
+  'Hip-Hop/Rap',
+  'R&B/Soul',
+  'Indie',
+  'Pop',
+  'Jazz',
+  'Classical',
+  'Acoustic',
+  'Alternative',
+  'Experimental',
+];
+
 export async function fetchTrending(
   signal?: AbortSignal,
-  genres = ['Lo-Fi', 'Ambient', 'Chill', 'Electronic', 'Downtempo'],
+  genres = DISCOVERY_GENRES,
 ): Promise<{ tracks: SourceTrack[]; sources: AudiusTrack[] }> {
-  const queries = genres.map(async (genre) => {
+  const genreQueries = genres.map(async (genre) => {
     const response = await request<TracksResponse>(
-      `/tracks/trending?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&genre=${encodeURIComponent(genre)}&limit=12`,
+      `/tracks/trending?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&genre=${encodeURIComponent(genre)}&limit=40&time=week`,
       signal,
     );
     return response.data ?? [];
   });
-  const settled = await Promise.allSettled(queries);
+  // Underground trending is where the smaller rooms live. It also keeps the
+  // catalogue from being only the same chart names.
+  const underground = request<TracksResponse>(
+    `/tracks/trending/underground?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&limit=60`,
+    signal,
+  ).then((response) => response.data ?? []);
+
+  const settled = await Promise.allSettled([...genreQueries, underground]);
   const raw = settled.flatMap((result) => (result.status === 'fulfilled' ? result.value : []));
   if (!raw.length) {
     const fallback = await request<TracksResponse>(
-      `/tracks/trending?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&limit=24`,
+      `/tracks/trending?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&limit=100`,
       signal,
     );
     raw.push(...(fallback.data ?? []));
@@ -194,7 +224,7 @@ export async function fetchTracksByIds(
   ids: string[],
   signal?: AbortSignal,
 ): Promise<{ tracks: SourceTrack[]; sources: AudiusTrack[] }> {
-  const unique = Array.from(new Set(ids)).slice(0, 80);
+  const unique = Array.from(new Set(ids)).slice(0, 200);
   const tracks: SourceTrack[] = [];
   const sources: AudiusTrack[] = [];
   const seen = new Set<string>();
@@ -230,7 +260,7 @@ export async function searchTracks(
   const q = query.trim();
   if (q.length < 2) return { tracks: [], sources: [] };
   const response = await request<TracksResponse>(
-    `/tracks/search?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&query=${encodeURIComponent(q)}&limit=24`,
+    `/tracks/search?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&query=${encodeURIComponent(q)}&limit=40`,
     signal,
   );
   const seen = new Set<string>();
@@ -253,9 +283,14 @@ function chunkPlaylist(
   sourceTracks: SourceTrack[],
   fallback: SourceTrack[],
   palette: PaletteKey,
+  take = 24,
+  offset = 0,
 ): Playlist {
-  const unique = Array.from(new Set(sourceTracks.map((track) => track.id)));
-  const ids = (unique.length >= 2 ? unique : fallback.map((track) => track.id)).slice(0, 12);
+  const sourcePool = Array.from(new Set(sourceTracks.map((track) => track.id)));
+  const fallbackPool = Array.from(new Set(fallback.map((track) => track.id)));
+  const pool = sourcePool.length >= 2 ? sourcePool : fallbackPool;
+  const rotated = pool.length > 1 ? [...pool.slice(offset % pool.length), ...pool.slice(0, offset % pool.length)] : pool;
+  const ids = rotated.slice(0, take);
   return {
     id,
     title,
@@ -265,8 +300,15 @@ function chunkPlaylist(
     art: hash(id) % 8,
     updated: 'Curated from Audius',
     trackIds: ids,
-    image: sourceTracks[0]?.image ?? fallback[0]?.image,
+    image: sourceTracks[offset % Math.max(1, sourceTracks.length)]?.image ?? sourceTracks[0]?.image ?? fallback[0]?.image,
   };
+}
+
+function slugFor(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 export function buildCatalogue(
@@ -317,68 +359,139 @@ export function buildCatalogue(
     }
   }
 
-  const byGenre = (genre: string) => tracks.filter((track) => track.genre?.toLowerCase() === genre.toLowerCase());
+  const byGenre = (genre: string) =>
+    tracks.filter((track) => track.genre?.toLowerCase() === genre.toLowerCase());
+  const fromGenres = (genres: string[]) => genres.flatMap((genre) => byGenre(genre));
   const allTracks = tracks;
-  const playlists: Playlist[] = [
-    chunkPlaylist(
-      'late-night-purr',
-      'Late Night Purr',
-      'Low light, slow tempos and tracks that don’t ask for attention.',
-      [...byGenre('Ambient'), ...byGenre('Downtempo'), ...byGenre('Lo-Fi')],
-      allTracks,
-      'lavender',
-    ),
-    chunkPlaylist(
-      'focus-paws',
-      'Focus Paws',
-      'Steady, low-distraction music for deep work.',
-      [...byGenre('Lo-Fi'), ...byGenre('Ambient')],
-      allTracks,
-      'ice',
-    ),
-    chunkPlaylist(
-      'rainy-window',
-      'Rainy Window',
-      'The best excuse to stay in. Muted, humid, unhurried.',
-      [...byGenre('Ambient'), ...byGenre('Downtempo')],
-      allTracks,
-      'sky',
-    ),
-    chunkPlaylist(
-      'sunday-loaf',
-      'Sunday Loaf',
-      'Nowhere to be. Nothing to prove.',
-      [...byGenre('Chill'), ...byGenre('Lo-Fi')],
-      allTracks,
-      'cream',
-    ),
-    chunkPlaylist(
-      'golden-hour-tail',
-      'Golden Hour Tail',
-      'Warm light, long shadows, one more song.',
-      [...byGenre('Electronic'), ...byGenre('Chill')],
-      allTracks,
-      'peach',
-    ),
-    chunkPlaylist(
-      'soft-launch',
-      'Soft Launch',
-      'New tracks with a gentle entrance. No alarms.',
-      tracks.slice(0, 12),
-      allTracks,
-      'blush',
-    ),
+
+  const counts = new Map<string, number>();
+  for (const track of tracks) {
+    const genre = track.genre?.trim();
+    if (!genre) continue;
+    counts.set(genre, (counts.get(genre) ?? 0) + 1);
+  }
+  const topGenres = Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([genre]) => genre);
+
+  const curated: Array<{
+    id: string;
+    title: string;
+    description: string;
+    genres: string[];
+    palette: PaletteKey;
+    take?: number;
+  }> = [
     {
-      id: 'liked-songs',
-      title: 'Liked Songs',
-      description: 'Everything you saved on this device. Kept warm.',
-      curator: 'You',
+      id: 'late-night-purr',
+      title: 'Late Night Purr',
+      description: 'Low light, slow tempos and tracks that don’t ask for attention.',
+      genres: ['Ambient', 'Downtempo', 'Lo-Fi', 'Chill'],
+      palette: 'lavender',
+      take: 30,
+    },
+    {
+      id: 'focus-paws',
+      title: 'Focus Paws',
+      description: 'Steady, low-distraction music for deep work. No sudden movements.',
+      genres: ['Lo-Fi', 'Ambient', 'Classical', 'Electronic'],
+      palette: 'ice',
+      take: 30,
+    },
+    {
+      id: 'rainy-window',
+      title: 'Rainy Window',
+      description: 'The best excuse to stay in. Muted, humid, unhurried.',
+      genres: ['Ambient', 'Downtempo', 'Jazz', 'Chill'],
+      palette: 'sky',
+      take: 28,
+    },
+    {
+      id: 'sunday-loaf',
+      title: 'Sunday Loaf',
+      description: 'Nowhere to be. Nothing to prove. Just a warm windowsill and a good record.',
+      genres: ['Chill', 'Acoustic', 'Lo-Fi', 'Jazz'],
+      palette: 'cream',
+      take: 28,
+    },
+    {
+      id: 'golden-hour-tail',
+      title: 'Golden Hour Tail',
+      description: 'Warm light, long shadows, one more song.',
+      genres: ['Electronic', 'Chill', 'Pop', 'Downtempo'],
+      palette: 'peach',
+      take: 28,
+    },
+    {
+      id: 'soft-launch',
+      title: 'Soft Launch',
+      description: 'New tracks with a gentle entrance. No alarms, no surprises.',
+      genres: ['Pop', 'R&B/Soul', 'Indie', 'Alternative'],
+      palette: 'blush',
+      take: 28,
+    },
+    {
+      id: 'night-drive',
+      title: 'Night Drive',
+      description: 'Headlights, wet asphalt and a bassline that keeps its cool.',
+      genres: ['House', 'Techno', 'Electronic', 'Hip-Hop/Rap'],
+      palette: 'night',
+      take: 28,
+    },
+    {
+      id: 'deep-cuts',
+      title: 'Deep Cuts',
+      description: 'The left turns, the B-sides, the songs that reward staying.',
+      genres: ['Experimental', 'Alternative', 'Jazz', 'Classical'],
       palette: 'plum',
-      art: 3,
-      updated: 'Nothing saved yet',
-      trackIds: [],
+      take: 28,
     },
   ];
+
+  const playlists: Playlist[] = curated.map((item, index) =>
+    chunkPlaylist(
+      item.id,
+      item.title,
+      item.description,
+      fromGenres(item.genres),
+      allTracks,
+      item.palette,
+      item.take ?? 28,
+      index * 7,
+    ),
+  );
+
+  // One room per genre that actually returned enough music. This is how the
+  // shelf keeps growing without hand-writing a playlist for every mood.
+  const paletteCycle: PaletteKey[] = ['lavender', 'ice', 'sky', 'cream', 'peach', 'blush', 'night', 'plum'];
+  topGenres.forEach((genre, index) => {
+    const genreTracks = byGenre(genre);
+    if (genreTracks.length < 4) return;
+    playlists.push(
+      chunkPlaylist(
+        `room-${slugFor(genre)}`,
+        `${genre} Room`,
+        `Everything Audius has been playing in ${genre.toLowerCase()} this week, in one long breath.`,
+        genreTracks,
+        allTracks,
+        paletteCycle[index % paletteCycle.length],
+        24,
+        index * 5,
+      ),
+    );
+  });
+
+  playlists.push({
+    id: 'liked-songs',
+    title: 'Liked Songs',
+    description: 'Everything you saved on this device. Kept warm.',
+    curator: 'You',
+    palette: 'plum',
+    art: 3,
+    updated: 'Nothing saved yet',
+    trackIds: [],
+  });
 
   return {
     tracks,

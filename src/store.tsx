@@ -54,6 +54,7 @@ export type AppMode = 'studio' | 'product';
 export type AppProfile = {
   name: string;
   handle: string;
+  email?: string;
   genres: string[];
   avatarSeed: string;
   birthday?: { day: number; month: number; year: number };

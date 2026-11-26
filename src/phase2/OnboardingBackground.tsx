@@ -86,33 +86,33 @@ export type OnboardingBackgroundApi = {
 /* ── Palette ──────────────────────────────────────────────────────────────── */
 
 const WARM: Omit<PaletteConfig, 'orb' | 'blobs' | 'ringSpeed'> = {
-  top: '#B34700',
-  mid: '#6B1F00',
-  bottom: '#1A0508',
-  corner: '#120304',
-  glow: '#FF8A1F',
-  orbCore: '#FFE3BC',
-  orbMid: '#FF7A1A',
-  orbEdge: '#7A1A08',
-  rim: '#FFB36B',
-  blobA: '#FF8A1F',
-  blobB: '#C4142F',
-  blobC: '#2A080D',
+  top: '#4B2BA8',
+  mid: '#2B1159',
+  bottom: '#120724',
+  corner: '#0C0418',
+  glow: '#9B5CFF',
+  orbCore: '#FFD9F4',
+  orbMid: '#B06BFF',
+  orbEdge: '#3A1A78',
+  rim: '#E2C7FF',
+  blobA: '#9B5CFF',
+  blobB: '#C95CFF',
+  blobC: '#1B0B3A',
 };
 
 const DEEP: Omit<PaletteConfig, 'orb' | 'blobs' | 'ringSpeed'> = {
-  top: '#431518',
-  mid: '#412519',
-  bottom: '#140406',
-  corner: '#0F0203',
-  glow: '#C4142F',
-  orbCore: '#FFC7B0',
-  orbMid: '#B33A2C',
-  orbEdge: '#4A141C',
-  rim: '#FF9E86',
-  blobA: '#C4142F',
-  blobB: '#7A2B22',
-  blobC: '#24070B',
+  top: '#1B0C33',
+  mid: '#241046',
+  bottom: '#0B0516',
+  corner: '#080310',
+  glow: '#8A4BD0',
+  orbCore: '#F3D9FF',
+  orbMid: '#8A4BD0',
+  orbEdge: '#2A1150',
+  rim: '#CBA6FF',
+  blobA: '#6B2BD9',
+  blobB: '#3C1C70',
+  blobC: '#120724',
 };
 
 /**
@@ -128,30 +128,30 @@ const STEP_PALETTES: PaletteConfig[] = [
   },
   {
     ...WARM,
-    top: '#A84300',
-    mid: '#641D00',
+    top: '#5530B8',
+    mid: '#2E125E',
     orb: [0.74, 0.76],
     blobs: [[0.1, 0.64], [0.9, 0.3], [0.54, 0.1]],
     ringSpeed: 0.95,
   },
   {
     ...WARM,
-    top: '#B84A00',
+    top: '#6336C8',
     orb: [0.84, 0.82],
     blobs: [[0.2, 0.74], [0.82, 0.4], [0.44, 0.05]],
     ringSpeed: 1.05,
   },
   {
     ...WARM,
-    top: '#A23E00',
+    top: '#4E2A9E',
     orb: [0.72, 0.8],
     blobs: [[0.24, 0.6], [0.76, 0.34], [0.5, 0.12]],
     ringSpeed: 1.35,
   },
   {
     ...WARM,
-    top: '#A94000',
-    mid: '#5F1C00',
+    top: '#5630AE',
+    mid: '#2A1057',
     orb: [0.78, 0.74],
     blobs: [[0.18, 0.7], [0.88, 0.44], [0.4, 0.1]],
     ringSpeed: 1,
@@ -164,16 +164,16 @@ const STEP_PALETTES: PaletteConfig[] = [
   },
   {
     ...DEEP,
-    top: '#3E1418',
-    mid: '#3C2218',
+    top: '#221040',
+    mid: '#251247',
     orb: [0.7, 0.74],
     blobs: [[0.2, 0.6], [0.8, 0.5], [0.55, 0.15]],
     ringSpeed: 0.68,
   },
   {
     ...DEEP,
-    top: '#45161A',
-    mid: '#432519',
+    top: '#2A1248',
+    mid: '#2A1647',
     orb: [0.8, 0.8],
     blobs: [[0.25, 0.75], [0.75, 0.35], [0.5, 0.1]],
     ringSpeed: 0.78,
@@ -181,18 +181,18 @@ const STEP_PALETTES: PaletteConfig[] = [
 ];
 
 const OUTRO_COLORS: Palette = {
-  top: hexToRgb('#431518'),
-  mid: hexToRgb('#2B0D10'),
-  bottom: hexToRgb('#120304'),
-  corner: hexToRgb('#0C0203'),
-  glow: hexToRgb('#7A1B26'),
-  orbCore: hexToRgb('#FFB7A8'),
-  orbMid: hexToRgb('#8F2A32'),
-  orbEdge: hexToRgb('#3A0E16'),
-  rim: hexToRgb('#E47E72'),
-  blobA: hexToRgb('#8F1D2A'),
-  blobB: hexToRgb('#5A1A1E'),
-  blobC: hexToRgb('#1E060A'),
+  top: hexToRgb('#1B0C33'),
+  mid: hexToRgb('#241046'),
+  bottom: hexToRgb('#0C0418'),
+  corner: hexToRgb('#080310'),
+  glow: hexToRgb('#5B2A9E'),
+  orbCore: hexToRgb('#F7DCFF'),
+  orbMid: hexToRgb('#6B3BB0'),
+  orbEdge: hexToRgb('#221040'),
+  rim: hexToRgb('#D7B8FF'),
+  blobA: hexToRgb('#5B2A9E'),
+  blobB: hexToRgb('#2E1550'),
+  blobC: hexToRgb('#0E051C'),
   orb: [0.5, 0.55],
   blobs: [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
   ringSpeed: 3.4,
@@ -463,7 +463,7 @@ void main() {
   col += uOrbMid * exp(-max(rrO - 0.85, 0.0) * 2.6) * 0.08;
   col += uGlow * exp(-length(op) * 3.4) * 0.08;
 
-  /* Vignette: corners fall to #120304 and the edges stay quiet. */
+  /* Vignette: corners fall to #0C0418 and the edges stay quiet. */
   float vignetteDistance = length((uv - vec2(0.5)) * vec2(aspect * 0.82, 1.0));
   float vignette = smoothstep(0.24, 1.02, vignetteDistance);
   col = mix(col, uCorner, vignette * 0.92);

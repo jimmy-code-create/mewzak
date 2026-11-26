@@ -278,11 +278,13 @@ function HomeScreen() {
   const first = name.split(/\s+/)[0];
   const initials = displayNameFor(name).initials;
 
-  const madeForYou = ['late-night-purr', 'sunday-loaf', 'rainy-window', 'focus-paws', 'golden-hour-tail'].filter(
-    (id) => playlistById[id],
-  );
-  const recent = albums.slice(0, 4).map((album) => album.id);
-  const pickedTracks = tracks.slice(0, 3).map((item) => item.id);
+  const madeForYou = playlists
+    .filter((item) => item.curator === 'Mewzak' && item.id !== 'liked-songs' && item.trackIds.length > 0)
+    .slice(0, 8)
+    .map((item) => item.id);
+  const recent = albums.slice(0, 6).map((album) => album.id);
+  const pickedTracks = tracks.slice(0, 6).map((item) => item.id);
+  const deepCuts = tracks.slice(6, 12).map((item) => item.id);
 
   return (
     <div className="ph-page ph-home">
@@ -386,6 +388,23 @@ function HomeScreen() {
               ))}
             </div>
           </section>
+
+          {deepCuts.length ? (
+            <section className="ph-section">
+              <SectionHead title="Deep cuts" action="Search" onAction={() => nav('phone', 'search')} />
+              <div className="ph-list">
+                {deepCuts.map((id) => (
+                  <TrackRow
+                    key={id}
+                    trackId={id}
+                    platform="phone"
+                    variant="phone"
+                    contextIds={deepCuts}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <button
             className="ph-quiet-card"
@@ -1682,7 +1701,9 @@ function SettingsScreen() {
         <div className="ph-set-row">
           <div>
             <strong>{profile?.name ?? 'Listener'}</strong>
-            <span>{profile?.handle ?? '@listener'} · no account, no cloud</span>
+            <span>
+              {profile?.email ? `${profile.email} · account on this device` : `${profile?.handle ?? '@listener'} · no account, no cloud`}
+            </span>
           </div>
         </div>
         <button className="ph-set-row ph-set-row--button" onClick={signOut}>
@@ -1819,7 +1840,12 @@ const FULL_BLEED: ScreenName[] = ['nowplaying', 'onboarding', 'queue', 'lyrics']
 const TAB_NAMES: ScreenName[] = ['home', 'search', 'library'];
 
 export function PhoneApp({ os = 'ios' }: { os?: 'ios' | 'android' }) {
-  const { route, back, nav, jump, theme } = useApp();
+  const { route, back, nav, jump, theme, mode } = useApp();
+  // The product runs inside the user's real OS window. Drawing a second clock,
+  // signal bar, notch or gesture pill there is duplicate chrome — the phone in
+  // the design studio still gets the mock. On every platform (web, iOS,
+  // Android, Windows, macOS, Linux) the real system already draws those.
+  const product = mode === 'product';
   const screen = route('phone');
   const name = screen.name;
   const fullBleed = FULL_BLEED.includes(name);
@@ -1882,7 +1908,7 @@ export function PhoneApp({ os = 'ios' }: { os?: 'ios' | 'android' }) {
       data-theme={theme}
       data-screen={name}
     >
-      <StatusBar os={os} light={onArt} />
+      {!product ? <StatusBar os={os} light={onArt} /> : null}
       {fullBleed ? (
         <div className="ph-fullbleed">{body}</div>
       ) : (
@@ -1906,7 +1932,7 @@ export function PhoneApp({ os = 'ios' }: { os?: 'ios' | 'android' }) {
       )}
 
       <ToastHost scope="phone" />
-      <HomeIndicator os={os} light={onArt} />
+      {!product ? <HomeIndicator os={os} light={onArt} /> : null}
     </div>
   );
 }
