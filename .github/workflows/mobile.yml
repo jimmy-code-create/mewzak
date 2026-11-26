@@ -25,8 +25,7 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set NDK path
-        run: echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
+      - uses: android-actions/setup-android@v3
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -44,19 +43,50 @@ jobs:
       - name: Build debug APK
         run: npx tauri android build --debug --apk
 
-      - name: Release APK (tag push only)
+      - name: Upload Android APK to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Mewzak ${{ github.ref_name }}
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ios:
+    name: iOS simulator app (unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Initialise iOS project
+        run: npx tauri ios init --ci
+
+      - name: Build for the iOS simulator (no signing required)
+        run: npx tauri ios build --debug --target aarch64-sim
+
+      - name: Upload iOS simulator app to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-
-      - name: Upload artifact (manual run)
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: mewzak-android-debug
-          path: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-          if-no-files-found: error
+            src-tauri/gen/apple/build/**/*.app
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
