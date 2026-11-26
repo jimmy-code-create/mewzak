@@ -1,0 +1,7 @@
+{
+  "identifier": "mobile",
+  "description": "Default Mewzak mobile capabilities",
+  "platforms": ["android", "iOS"],
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
