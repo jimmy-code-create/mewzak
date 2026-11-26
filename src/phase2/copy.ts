@@ -35,6 +35,7 @@ export const SIGN_IN = {
   eyebrow: 'Welcome back',
   title: 'Sign in.',
   body: 'Pick up your queue, your saves and the playlists that already know your name.',
+  emailCta: 'Continue with email',
   google: 'Continue with Google',
   phone: 'Continue with phone number',
   localTitle: 'A room of your own.',
@@ -55,6 +56,33 @@ export const AUTH_LOADING = {
   title: 'Opening your room',
   body: 'Finding your saves and warming the lamps.',
   working: 'working on it',
+};
+
+export const AUTH = {
+  eyebrow: 'Your account',
+  createTitle: 'Keep your room.',
+  createBody: 'An email and a password, and your room can follow you to another device.',
+  loginTitle: 'Welcome back.',
+  loginBody: 'Sign in to pick up your queue, your saves and the playlists that already know your name.',
+  createTab: 'Create account',
+  loginTab: 'Log in',
+  emailLabel: 'Email',
+  emailPlaceholder: 'you@example.com',
+  passwordLabel: 'Password',
+  passwordPlaceholder: 'At least 8 characters',
+  showPassword: 'Show password',
+  hidePassword: 'Hide password',
+  forgot: 'Forgot password?',
+  forgotNote: 'Password reset is not connected yet.',
+  continueCreate: 'Create account',
+  continueLogin: 'Log in',
+  strengthLabel: 'Password strength',
+  strengthHint: 'At least 8 characters.',
+  strength: ['Too short', 'Getting there', 'Good', 'Strong', 'Excellent'],
+  emailRequired: 'Enter your email address.',
+  emailInvalid: 'Enter a valid email address.',
+  passwordInvalid: 'Use at least 8 characters.',
+  legal: 'Your password is never stored on this device.',
 };
 
 export const BIRTHDAY = {

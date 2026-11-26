@@ -680,6 +680,16 @@ html[data-product='true'] #root {
   min-height: 100%;
 }
 
+/* The onboarding sits over the live app so finish() can fade the atmosphere
+   away and reveal the room underneath. */
+.product-onboarding--overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
 /* ── Small screens ──────────────────────────────────────────────────────── */
 
 @media (max-width: 680px) {

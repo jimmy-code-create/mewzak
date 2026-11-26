@@ -249,7 +249,10 @@
 .p2-btn--gradient {
   background: var(--p2-gradient);
   color: var(--p2-on-grad);
-  box-shadow: 0 12px 28px rgba(253, 31, 104, 0.18);
+  box-shadow: none;
+  filter:
+    drop-shadow(0 10px 20px rgba(253, 31, 104, 0.18))
+    drop-shadow(0 2px 12px rgba(255, 148, 19, 0.12));
 }
 
 .p2-btn--gradient::after {
@@ -281,6 +284,10 @@
   animation: p2-glow 900ms var(--p2-ease) both;
 }
 
+.p2-btn--gradient.is-shimmering::after {
+  animation: p2-sheen 820ms var(--p2-ease) both;
+}
+
 .p2-btn--cream {
   background: var(--p2-cream);
   color: var(--p2-ink);
@@ -308,6 +315,19 @@
   color: var(--p2-solid-text);
 }
 
+.p2-btn--glass {
+  background: rgba(26, 13, 11, 0.44);
+  border-color: rgba(255, 246, 236, 0.2);
+  color: #fff6ec;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.p2-btn--glass:hover {
+  background: rgba(42, 24, 19, 0.58);
+  border-color: rgba(255, 246, 236, 0.32);
+}
+
 /* Variant text colours must beat the scoped `button { color: inherit }`
    normalize. Keep :disabled on the neutral disabled treatment. */
 .p2-scope .p2-btn--gradient:not(:disabled) {
@@ -324,6 +344,10 @@
 
 .p2-scope .p2-btn--light:not(:disabled) {
   color: var(--p2-solid-text);
+}
+
+.p2-scope .p2-btn--glass:not(:disabled) {
+  color: #fff6ec;
 }
 
 .p2-scope .p2-btn--gradient.is-loading:disabled {
@@ -344,6 +368,13 @@
   color: var(--p2-cream-hi);
   background: #101010;
   border-color: transparent;
+  opacity: 0.92;
+}
+
+.p2-scope .p2-btn--glass.is-loading:disabled {
+  color: #fff6ec;
+  background: rgba(26, 13, 11, 0.44);
+  border-color: rgba(255, 246, 236, 0.2);
   opacity: 0.92;
 }
 
@@ -766,162 +797,39 @@
   background: var(--p2-deep);
 }
 
-.p2-bg {
+/* The atmosphere is one persistent canvas painted by OnboardingBackground.
+   The host is inert; it never restarts between steps. */
+.p2-bg-shader {
   position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: 0;
   overflow: hidden;
-  background:
-    radial-gradient(120% 80% at 78% 0%, #be4a01 0%, transparent 56%),
-    radial-gradient(95% 80% at 6% 100%, #431518 0%, transparent 62%),
-    linear-gradient(165deg, #7c2700 0%, #9a3200 48%, #5a1a08 100%);
-  transition: background var(--p2-morph) var(--p2-ease);
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-bg {
-  background:
-    radial-gradient(100% 86% at 82% 10%, #6b2421 0%, transparent 62%),
-    radial-gradient(110% 90% at 0% 100%, #290b0f 0%, transparent 68%),
-    linear-gradient(165deg, #431518 0%, #4d1a18 46%, #2b0d10 100%);
-}
-
-.p2-bg-scene {
-  position: absolute;
-  inset: -8%;
-  transform: translate3d(var(--p2-mx, 0px), var(--p2-my, 0px), 0);
-  transition: transform 500ms var(--p2-ease);
-  will-change: transform;
-}
-
-.p2-bg-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(54px);
-  opacity: 0.72;
-  mix-blend-mode: screen;
-  will-change: transform;
-  animation: p2-blob 18s ease-in-out infinite alternate;
-}
-
-.p2-bg-blob--1 {
-  width: 58%;
-  aspect-ratio: 1;
-  left: 2%;
-  top: 4%;
-  background: #be4a01;
-  animation-duration: 19s;
-}
-
-.p2-bg-blob--2 {
-  width: 46%;
-  aspect-ratio: 1;
-  right: 0%;
-  top: 26%;
-  background: #8d2b01;
-  opacity: 0.6;
-  animation-duration: 23s;
-  animation-delay: -7s;
-}
-
-.p2-bg-blob--3 {
-  width: 60%;
-  aspect-ratio: 1;
-  left: 24%;
-  bottom: -18%;
-  background: #431518;
-  opacity: 0.86;
-  animation-duration: 27s;
-  animation-delay: -12s;
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-bg-blob--1 {
-  background: #7d2b29;
-  opacity: 0.56;
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-bg-blob--2 {
-  background: #6a2321;
-  opacity: 0.48;
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-bg-blob--3 {
-  background: #2b0b10;
-}
-
-.p2-bg-orb {
-  position: absolute;
-  right: 9%;
-  top: 17%;
-  width: 38%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 246, 235, 0.5), transparent 30%),
-    radial-gradient(circle at 60% 64%, #c24b1b, transparent 62%),
-    radial-gradient(circle at 42% 38%, #953401, #5b1c05 74%);
-  filter: blur(2px);
-  opacity: 0.34;
-  box-shadow:
-    0 0 120px rgba(200, 78, 17, 0.45),
-    inset -30px -20px 70px rgba(35, 8, 7, 0.7);
-  animation: p2-orb 12s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-bg-orb {
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 240, 230, 0.36), transparent 30%),
-    radial-gradient(circle at 60% 64%, #7f2b34, transparent 62%),
-    radial-gradient(circle at 42% 38%, #54202a, #290b10 74%);
-  box-shadow:
-    0 0 120px rgba(113, 35, 48, 0.5),
-    inset -30px -20px 70px rgba(20, 4, 8, 0.8);
-}
-
-.p2-ripples {
-  position: absolute;
-  left: 50%;
-  top: 44%;
-  width: min(96%, 700px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.6;
+  background: #0d0205;
 }
 
-.p2-ripple {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255, 222, 200, 0.18);
-  border-radius: 50%;
-  transform: scale(0.22);
+.p2-onboard.is-finishing .p2-bg-shader {
+  background: transparent;
+}
+
+.p2-bg-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: opacity 420ms linear;
+}
+
+.p2-onboard.is-finishing {
+  background: transparent;
+  pointer-events: none;
+}
+
+.p2-onboard.is-finishing .p2-onboard-inner {
   opacity: 0;
-  animation: p2-ripple 9s var(--p2-ease) infinite;
-  will-change: transform, opacity;
-}
-
-.p2-ripple:nth-child(2) {
-  animation-delay: 2.2s;
-}
-.p2-ripple:nth-child(3) {
-  animation-delay: 4.5s;
-}
-.p2-ripple:nth-child(4) {
-  animation-delay: 6.8s;
-}
-
-.p2-onboard[data-atmosphere='deep'] .p2-ripple {
-  border-color: rgba(243, 193, 206, 0.14);
-}
-
-.p2-bg-grain {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.21;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  transform: translateY(-10px);
+  transition:
+    opacity 320ms var(--p2-ease),
+    transform 320ms var(--p2-ease);
 }
 
 .p2-onboard-inner {
@@ -936,6 +844,7 @@
 }
 
 .p2-onboard-top {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -964,12 +873,54 @@
 }
 
 .p2-step-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 1em;
+  overflow: hidden;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 246, 236, 0.48);
   font-variant-numeric: tabular-nums;
+}
+
+.p2-step-sep {
+  opacity: 0.45;
+  font-weight: 500;
+}
+
+.p2-roll {
+  display: inline-flex;
+  height: 1em;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.p2-roll-col {
+  position: relative;
+  display: block;
+  width: 0.64em;
+  height: 1em;
+  overflow: hidden;
+  letter-spacing: 0;
+}
+
+.p2-roll-strip {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  letter-spacing: 0;
+  transition: transform 560ms var(--p2-spring);
+  will-change: transform;
+}
+
+.p2-roll-strip > span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+  text-align: center;
 }
 
 .p2-skip {
@@ -1036,9 +987,41 @@
   animation: p2-step-in 520ms var(--p2-ease) both;
 }
 
+.p2-flow[data-dir='back'] {
+  animation-name: p2-step-in-back;
+}
+
 .p2-flow.is-leaving {
-  animation: p2-step-out 190ms var(--p2-ease) both;
+  animation: p2-step-out 200ms var(--p2-ease) both;
   pointer-events: none;
+}
+
+.p2-flow.is-leaving[data-dir='back'] {
+  animation-name: p2-step-out-back;
+}
+
+.p2-stagger-1,
+.p2-stagger-2,
+.p2-stagger-3,
+.p2-stagger-4,
+.p2-stagger-5 {
+  animation: p2-rise 640ms var(--p2-ease) both;
+}
+
+.p2-stagger-1 {
+  animation-delay: 0ms;
+}
+.p2-stagger-2 {
+  animation-delay: 70ms;
+}
+.p2-stagger-3 {
+  animation-delay: 140ms;
+}
+.p2-stagger-4 {
+  animation-delay: 210ms;
+}
+.p2-stagger-5 {
+  animation-delay: 280ms;
 }
 
 .p2-flow--welcome {
@@ -1238,6 +1221,271 @@
   text-underline-offset: 2px;
 }
 
+/* Email + password */
+
+.p2-auth-step {
+  gap: 20px;
+}
+
+.p2-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 246, 236, 0.14);
+  background: rgba(22, 11, 9, 0.46);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.p2-seg button {
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 246, 236, 0.62);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background var(--p2-base) var(--p2-ease),
+    color var(--p2-base) var(--p2-ease),
+    box-shadow var(--p2-base) var(--p2-ease),
+    transform var(--p2-fast) var(--p2-ease);
+}
+
+.p2-seg button.is-on {
+  background: rgba(255, 246, 236, 0.94);
+  color: #1b1212;
+  box-shadow: 0 6px 18px rgba(12, 4, 3, 0.24);
+}
+
+.p2-seg button:active {
+  transform: scale(0.98);
+}
+
+.p2-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.p2-auth-field-wrap {
+  position: relative;
+}
+
+.p2-auth-field {
+  position: relative;
+}
+
+.p2-auth-field::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  border-radius: calc(var(--p2-r-input) + 1px);
+  padding: 1px;
+  background: linear-gradient(100deg, #fd1f68, #fe4d2b, #ff9413, #fd1f68);
+  background-size: 240% 100%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 260ms var(--p2-ease);
+  pointer-events: none;
+}
+
+.p2-auth-field:focus-within::after {
+  opacity: 1;
+  animation: p2-border-flow 3.2s linear infinite;
+}
+
+.p2-auth-field input {
+  padding-top: 23px;
+  padding-bottom: 6px;
+  background: rgba(24, 13, 11, 0.54);
+  border-color: rgba(255, 246, 236, 0.16);
+}
+
+.p2-auth-field input:focus {
+  background: rgba(31, 17, 13, 0.64);
+  border-color: rgba(253, 31, 104, 0.34);
+}
+
+.p2-auth-field input::placeholder {
+  color: rgba(255, 246, 236, 0.28);
+}
+
+.p2-auth-field label,
+.p2-auth-field input:focus + label,
+.p2-auth-field.is-filled label {
+  top: 12px;
+  transform: none;
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 236, 0.5);
+}
+
+.p2-auth-field:focus-within label {
+  color: rgba(255, 246, 236, 0.82);
+}
+
+.p2-auth-field.is-invalid input {
+  border-color: rgba(255, 99, 132, 0.52);
+}
+
+.p2-auth-field.is-invalid:focus-within::after {
+  background: linear-gradient(100deg, #ff4f7b, #ff8a5c);
+}
+
+.p2-auth-field.has-eye input {
+  padding-right: 50px;
+}
+
+.p2-eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 246, 236, 0.55);
+  cursor: pointer;
+  transition:
+    color var(--p2-base) var(--p2-ease),
+    background var(--p2-base) var(--p2-ease),
+    transform var(--p2-fast) var(--p2-ease);
+}
+
+.p2-eye:hover {
+  color: #fff6ec;
+  background: rgba(255, 246, 236, 0.07);
+}
+
+.p2-eye:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.p2-auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #ff9db5;
+}
+
+.p2-auth-error i {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #ff5c86;
+  box-shadow: 0 0 8px rgba(255, 92, 134, 0.8);
+}
+
+.p2-auth-error--form {
+  margin-top: 0;
+}
+
+.p2-auth-form.is-shaking {
+  animation: p2-shake 440ms var(--p2-ease);
+}
+
+.p2-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: -2px;
+}
+
+.p2-strength-track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.p2-strength-track i {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 246, 236, 0.14);
+  transition:
+    background var(--p2-base) var(--p2-ease),
+    box-shadow var(--p2-base) var(--p2-ease);
+}
+
+.p2-strength-track i.is-on:nth-child(1) {
+  background: #fd1f68;
+  box-shadow: 0 0 8px rgba(253, 31, 104, 0.5);
+}
+
+.p2-strength-track i.is-on:nth-child(2) {
+  background: #fe4d2b;
+  box-shadow: 0 0 8px rgba(254, 77, 43, 0.46);
+}
+
+.p2-strength-track i.is-on:nth-child(3) {
+  background: #ff7a1a;
+  box-shadow: 0 0 8px rgba(255, 122, 26, 0.46);
+}
+
+.p2-strength-track i.is-on:nth-child(4) {
+  background: #ffb347;
+  box-shadow: 0 0 8px rgba(255, 179, 71, 0.46);
+}
+
+.p2-strength > span {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 236, 0.44);
+}
+
+.p2-auth-form .p2-flow-foot {
+  margin-top: 2px;
+  gap: 10px;
+}
+
+.p2-auth-forgot {
+  align-self: center;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  color: rgba(255, 246, 236, 0.68);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.p2-auth-forgot:hover {
+  color: #fff6ec;
+}
+
+.p2-auth-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(255, 246, 236, 0.48);
+  text-align: center;
+}
+
 /* Auth loading */
 
 .p2-loading-step {
@@ -1285,11 +1533,12 @@
   display: grid;
   grid-template-columns: 0.8fr 1.25fr 0.9fr;
   gap: 4px;
-  padding: 0 10px 6px;
+  padding: 0 0 6px;
   font-size: 8.5px;
   font-weight: 650;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  text-align: center;
   color: rgba(255, 246, 236, 0.38);
 }
 
@@ -1547,13 +1796,17 @@
 
 @keyframes p2-glow {
   0% {
-    box-shadow: 0 0 0 rgba(253, 31, 104, 0);
+    filter: drop-shadow(0 0 0 rgba(253, 31, 104, 0));
   }
   35% {
-    box-shadow: 0 0 34px rgba(253, 31, 104, 0.34), 0 0 70px rgba(255, 148, 19, 0.16);
+    filter:
+      drop-shadow(0 0 22px rgba(253, 31, 104, 0.42))
+      drop-shadow(0 0 46px rgba(255, 148, 19, 0.18));
   }
   100% {
-    box-shadow: 0 12px 28px rgba(253, 31, 104, 0.18);
+    filter:
+      drop-shadow(0 10px 20px rgba(253, 31, 104, 0.18))
+      drop-shadow(0 2px 12px rgba(255, 148, 19, 0.12));
   }
 }
 
@@ -1596,38 +1849,73 @@
   }
 }
 
-@keyframes p2-blob {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(5%, -4%, 0) scale(1.08);
-  }
-  100% {
-    transform: translate3d(-4%, 5%, 0) scale(0.96);
-  }
-}
-
-@keyframes p2-orb {
+@keyframes p2-step-in-back {
   from {
-    transform: translate3d(-2%, 1%, 0) scale(0.97);
+    opacity: 0;
+    transform: translateY(-16px);
+    filter: blur(6px);
   }
   to {
-    transform: translate3d(3%, -3%, 0) scale(1.05);
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
   }
 }
 
-@keyframes p2-ripple {
-  0% {
-    transform: scale(0.22);
+@keyframes p2-step-out-back {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+  to {
     opacity: 0;
+    transform: translateY(12px);
+    filter: blur(5px);
   }
-  12% {
-    opacity: 0.7;
+}
+
+@keyframes p2-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
   }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes p2-shake {
+  0%,
   100% {
-    transform: scale(1);
-    opacity: 0;
+    transform: translateX(0);
+  }
+  18% {
+    transform: translateX(-5px);
+  }
+  36% {
+    transform: translateX(4px);
+  }
+  54% {
+    transform: translateX(-3px);
+  }
+  72% {
+    transform: translateX(2px);
+  }
+  88% {
+    transform: translateX(-1px);
+  }
+}
+
+@keyframes p2-border-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 240% 50%;
   }
 }
 
@@ -1782,18 +2070,10 @@
   }
 }
 
-[data-motion='off'] .p2-scope .p2-bg-blob,
-[data-motion='off'] .p2-scope .p2-bg-orb,
-[data-motion='off'] .p2-scope .p2-ripple,
 [data-motion='off'] .p2-scope .p2-avatar::before,
 [data-motion='off'] .p2-scope .p2-chip,
 [data-motion='off'] .p2-scope .p2-slide {
   animation: none !important;
-}
-
-[data-motion='off'] .p2-scope .p2-bg-scene {
-  transform: none;
-  transition: none;
 }
 
 [data-motion='off'] .p2-scope .p2-word {

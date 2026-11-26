@@ -118,7 +118,7 @@ export function WordReveal({
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 
-type ButtonVariant = 'gradient' | 'cream' | 'dark' | 'quiet' | 'light';
+type ButtonVariant = 'gradient' | 'cream' | 'dark' | 'quiet' | 'light' | 'glass';
 
 export function P2Button({
   children,
@@ -139,6 +139,23 @@ export function P2Button({
   icon?: ReactNode;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const { onPointerDown, disabled, ...buttonProps } = rest;
+  const [shimmer, setShimmer] = useState(false);
+  const shimmerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (shimmerRef.current) window.clearTimeout(shimmerRef.current);
+    };
+  }, []);
+
+  const triggerShimmer = () => {
+    if (variant !== 'gradient') return;
+    setShimmer(false);
+    window.requestAnimationFrame(() => setShimmer(true));
+    if (shimmerRef.current) window.clearTimeout(shimmerRef.current);
+    shimmerRef.current = window.setTimeout(() => setShimmer(false), 940);
+  };
+
   return (
     <button
       type="button"
@@ -151,10 +168,14 @@ export function P2Button({
         block && 'p2-btn--block',
         loading && 'is-loading',
         armed && 'is-armed',
+        shimmer && 'is-shimmering',
         className,
       )}
       onPointerDown={(e) => {
-        if (!disabled && !loading) haptic(7);
+        if (!disabled && !loading) {
+          haptic(7);
+          triggerShimmer();
+        }
         onPointerDown?.(e);
       }}
     >

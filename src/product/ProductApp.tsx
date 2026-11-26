@@ -388,13 +388,13 @@ export function ProductApp() {
 
   return (
     <AppProvider mode="product" profile={toProfile(session)}>
-      {session.completed ? (
-        <ProductShell />
-      ) : (
-        <div className="p2-scope product-onboarding">
+      <ProductShell />
+      {session.completed ? null : (
+        <div className="p2-scope product-onboarding product-onboarding--overlay">
           <OnboardingFlow
             initial={session}
             localOnly
+            onProgress={setSession}
             onComplete={(next) => {
               setSession(next);
               setBoot('ready');
