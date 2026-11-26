@@ -25,7 +25,20 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      # The hosted runner already has the Android SDK. `android-actions/setup-android@v3`
+      # currently fails while installing the retired `tools` package, so install only
+      # the packages Tauri needs and point NDK_HOME at a real NDK.
+      - name: Set up Android SDK + NDK
+        run: |
+          set -e
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          SDKMANAGER=$(find "$SDK/cmdline-tools" -name sdkmanager -type f | sort -V | tail -1)
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-34" "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0" "ndk;27.0.12077973"
+          echo "NDK_HOME=$SDK/ndk/27.0.12077973" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -43,14 +56,21 @@ jobs:
       - name: Build debug APK
         run: npx tauri android build --debug --apk
 
+      - name: Package Android APK
+        run: |
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -1)
+          test -n "$APK"
+          cp "$APK" "Mewzak-${{ github.ref_name }}-debug.apk"
+
       - name: Upload Android APK to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Mewzak ${{ github.ref_name }}
+          fail_on_unmatched_files: true
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            Mewzak-${{ github.ref_name }}-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,12 +101,22 @@ jobs:
       - name: Build for the iOS simulator (no signing required)
         run: npx tauri ios build --debug --target aarch64-sim
 
+      # An unsigned simulator .app is not installable on a physical iPhone. Zip it
+      # honestly and label it as a simulator build; a device build needs Apple
+      # signing credentials that this repository does not have.
+      - name: Package iOS simulator app
+        run: |
+          APP=$(find src-tauri/gen/apple/build -name "*.app" -type d | head -1)
+          test -n "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "Mewzak-${{ github.ref_name }}-ios-simulator.zip"
+
       - name: Upload iOS simulator app to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
+          fail_on_unmatched_files: true
           files: |
-            src-tauri/gen/apple/build/**/*.app
+            Mewzak-${{ github.ref_name }}-ios-simulator.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
