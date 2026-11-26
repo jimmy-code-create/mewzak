@@ -62,6 +62,17 @@ jobs:
           test -n "$APK"
           cp "$APK" "Mewzak-${{ github.ref_name }}-debug.apk"
 
+      # Tauri's debug APK is unsigned in CI. Sign it so Android will install it.
+      # This is a throwaway debug key, not a Play Store/release signing key.
+      - name: Sign debug APK
+        run: |
+          set -e
+          BT=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -mindepth 1 -type d | sort -V | tail -1)
+          keytool -genkeypair -keystore "$RUNNER_TEMP/mewzak-debug.keystore" -storepass mewzakdebug -alias mewzak -keypass mewzakdebug -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Mewzak Debug,O=Mewzak,C=US"
+          "$BT/zipalign" -f -p 4 "Mewzak-${{ github.ref_name }}-debug.apk" "$RUNNER_TEMP/mewzak-aligned.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/mewzak-debug.keystore" --ks-pass pass:mewzakdebug --key-pass pass:mewzakdebug --out "Mewzak-${{ github.ref_name }}-debug.apk" "$RUNNER_TEMP/mewzak-aligned.apk"
+          "$BT/apksigner" verify --print-certs "Mewzak-${{ github.ref_name }}-debug.apk"
+
       - name: Upload Android APK to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
