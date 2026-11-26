@@ -1,0 +1,35 @@
+{
+  "name": "mewzak",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Mewzak — a quiet music player for web, desktop and mobile",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "android:init": "tauri android init",
+    "android:build": "tauri android build",
+    "android:dev": "tauri android dev",
+    "ios:init": "tauri ios init",
+    "ios:build": "tauri ios build",
+    "ios:dev": "tauri ios dev"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
