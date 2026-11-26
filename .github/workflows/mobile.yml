@@ -1,0 +1,80 @@
+name: Mobile builds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Android APK (debug, unsigned)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Initialise Android project
+        run: npx tauri android init --ci
+
+      - name: Build debug APK
+        run: npx tauri android build --debug --apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mewzak-android-debug
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS simulator app (unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Initialise iOS project
+        run: npx tauri ios init --ci
+
+      - name: Build for the iOS simulator (no signing required)
+        run: npx tauri ios build --debug --target aarch64-sim
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mewzak-ios-simulator
+          path: |
+            src-tauri/gen/apple/build/**/*.app
+          if-no-files-found: error
