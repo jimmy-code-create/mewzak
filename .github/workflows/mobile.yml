@@ -43,22 +43,16 @@ jobs:
       - name: Build debug APK
         run: npx tauri android build --debug --apk
 
-      - name: Release APK (tag push only)
+      - name: Upload Android APK to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
+          name: Mewzak ${{ github.ref_name }}
           files: |
             src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-
-      - name: Upload artifact (manual run)
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: mewzak-android-debug
-          path: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-          if-no-files-found: error
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ios:
     name: iOS simulator app (unsigned)
@@ -87,9 +81,12 @@ jobs:
       - name: Build for the iOS simulator (no signing required)
         run: npx tauri ios build --debug --target aarch64-sim
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload iOS simulator app to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
         with:
-          name: mewzak-ios-simulator
-          path: |
+          tag_name: ${{ github.ref_name }}
+          files: |
             src-tauri/gen/apple/build/**/*.app
-          if-no-files-found: error
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
