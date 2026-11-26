@@ -1,0 +1,20 @@
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+/freebuff-sites-build/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Local review screenshots
+artifacts/
+
+# Local files
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
